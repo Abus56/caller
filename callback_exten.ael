@@ -1,0 +1,46 @@
+// переменные из вне
+// VOICE приветсвие
+// VOICE_PATH где искать записи
+// PHONE номер телефона на который звоним
+// REPORTFILE фаил с данными
+
+
+
+macro send_resultat_call(resultat){
+	// макрос для обратки результата звонка
+	NoOp(send resultat call);
+    Set(status=${resultat});
+    Set(billsec=${CDR(billsec)});
+    Set(responce=${RESPONCE});
+    // AGI(responce.py);
+    System(echo '${PHONE}\;${billsec}\;${responce}\;${status}' >> ${REPORTFILE});
+    return;
+
+};
+
+context callback_dial {
+	// контекс для непосредственного звонка клиенту
+
+	_XXXX. =>{
+		NoOp();
+		Set(call_to=${EXTEN});
+		Dial(LOCAL/${EXTEN}@from-internal);
+	};
+
+	h => {
+		&send_resultat_call(${DIALSTATUS});
+}
+
+};
+
+
+context callback_answer{
+	s => {
+		// после того как клиент взял трубку, подключается данные контекс, и диктует вопросы
+		NoOp(${STEPS});
+		Read(USER_ANSWER,${VOICE},1,,,5);
+		__RESPONCE=${number};
+
+		Hangup();
+
+	};
