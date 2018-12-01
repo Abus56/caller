@@ -1,17 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import socket
-import os
-import sys
-import argparse
+import re
+import time
 
 from asterisk import manager
 
-
-class SETTINGS:
-    AMI_USER = ''
-    AMI_PASSWORD = ''
-    AMI_SERVER = '127.0.0.1'
+from settings import SETTINGS
 
 
 def connection_ami(user, pasw, host):
@@ -25,6 +19,12 @@ def connection_ami(user, pasw, host):
         return ami
     except:
         return False
+
+
+def get_count_channels(ami, contex='\|*\n'):
+    channels = ami.command('core show channels')
+
+    return len(re.findall(contex, channels.data))
 
 
 def originate(ami, number, context_call, context_answer, **kwargs):
@@ -46,6 +46,11 @@ def call(number, voice, reportfile):
                           SETTINGS.AMI_SERVER)
     if not conn:
         print('erros')
+
+    while get_count_channels(
+            conn, 'callback_dial|callback_answer') <= SETTINGS.MAX_ACTIVE_CALL:
+
+        time.sleep(2)
 
     parametrs = {
         'PHONE': number,
