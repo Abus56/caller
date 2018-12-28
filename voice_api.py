@@ -15,7 +15,7 @@ def festival_generate_voice(text, path, ftype):
 
 
 def get_voice(text, ftype='wav'):
-    name = '%.%' % (md5.md5(text), ftype)
+    name = '%s.%s' % (md5.md5(text), ftype)
     filepath = os.path.join(SETTINGS.RECORDPATH, name)
 
     if not os.path.isfile(filepath):
